@@ -1,0 +1,12 @@
+---
+title: "STA 360 Final Project"
+author: "Glen Morgenstern and Jason Gerber"
+date: "4/24/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
