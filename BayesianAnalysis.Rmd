@@ -9,4 +9,65 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction: A few paragraphs which (i) motivate problem importance & relevance
+(supported by any pertinent literature), (ii) describe project goals and how such
+goals address the problem, (iii) a high-level roadmap of the proposed Bayesian
+modeling framework, and (iv) other relevant information for the reader. See project
+rubric for details.
 
+  Billions of people around the globe watch movies, and millions tune in to watch the Academy Awards every year(citation). 
+  
+  The goal of this project is to create a model which will predict with as much accuracy as possible the four major category winners at the Oscars. The Academy Awards is heavily publicized, promoted, and talked about every year, where millions of fans tune in to watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States.
+  
+  All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises. 
+  
+  The goal of this project is to create a model which will predict with as much accuracy as possible the four major category winners at the Oscars, which include Best Lead Actor, Best Lead Actress, Best Picture, and Best Director. Being able to predict Oscar winners is an analysis which many across the globe will have an interest in, whether they be data-lovers, typical cinephiles, or even gamblers who feel that they need an edge. 
+  
+  ## high level roadmap of proposed modeling framework.
+  
+  ## reader info
+  
+  ## fix up wording here
+
+  
+  
+  
+
+# Data: A couple of paragraphs describing the data to be used. You may wish to
+discuss: (i) data sources – where are you getting the data? (ii) data description –
+what data / variables will be used for modeling? (iii) data type – ordinal discrete,
+nominal discrete, continuous, etc., and (iv) data scraping / wrangling – how to
+extract and clean data for modeling? See project rubric for details.
+
+  The data set that we are using for this analysis is one that contains information about all Oscar nominations from 1928-2006 for the four major academy awards: Best Picture, Best Director, Best Leading Actor, and Best Leading Actress. The data has been taken from the personal website of Iain Pardoe, an online educator in mathematics and statistics. 
+  
+  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a candidate wins their award type or not. The data set given has 62 variables, of which 4 are indicator variables indicating if the nominee is up for that award. For example, if Kate Winslet is nominated for best leading actress, the variable FF(lead actress indicator) will equal 1, while the indicator variables for lead actor, best picture, and best director will equal 0. These variables will help us separate to make four separate models, one for predicting each award type,
+  
+  Our explanatory variables include the year the movie was produced, as well as several statistics involving other people who worked on the movie that the award nominee is from. For example, there is an indicator variable that specifies if the editing in the movie was nominated for an Oscar, a number of times the lead actor for the movie was previously nominated, and more similar variables. The basic idea is to predict if the nominee will win the award based on the strength of the rest of the movie and its cast. 
+  
+  Additionally, there are several interaction variables already built into the data
+  ### Glen, idk if we want to add MORE interactions?
+  
+  ## Limitations
+  
+  ## Project Goals
+  
+  ## EDA
+  
+  ## Data sources clearly described
+  
+
+# Model: Discussion & justification of the proposed Bayesian model framework
+(prior and sampling model). This discussion should elicit prior information on the
+problem, the data sources available, and relevant project goals. Any “downstream”
+uses of the model (e.g., for prediction, optimization, ranking) should be discussed
+in detail here. See project rubric for details.
+
+
+# Results: Posterior analyses from the fitted Bayesian model, and a translation of
+such findings into meaningful & understandable conclusions for the target audience
+(e.g., engineers, business managers, policy-makers, etc). See project rubric for
+details.
+
+
+# Conclusion: A summary of key findings and potential impacts of your project.
