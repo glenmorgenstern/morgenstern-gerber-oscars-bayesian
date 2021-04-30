@@ -9,6 +9,18 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(tidyverse)
+```
+
+```{r}
+oscars <- read_csv("data/oscars.csv")
+director_noms <- oscars %>%
+  filter(DD == 1, Year != 2006) %>%
+  rename(win = Ch) %>%
+mutate(win = ifelse(win==1, 1, 0))
+```
+
 # Introduction: A few paragraphs which (i) motivate problem importance & relevance
 (supported by any pertinent literature), (ii) describe project goals and how such
 goals address the problem, (iii) a high-level roadmap of the proposed Bayesian
@@ -49,12 +61,19 @@ extract and clean data for modeling? See project rubric for details.
   ### Glen, idk if we want to add MORE interactions?
   
   ## Limitations
+
+## Project Goals
   
-  ## Project Goals
+## EDA
+
+```{r}
+ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_histogram(binwidth = 1) + 
+  labs(title = "Total Oscar Nominations", x = "Total Nominations")  + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+```
   
-  ## EDA
   
-  ## Data sources clearly described
+## Data sources clearly described
   
 
 # Model: Discussion & justification of the proposed Bayesian model framework
