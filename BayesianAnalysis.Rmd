@@ -19,6 +19,7 @@ director_noms <- oscars %>%
   filter(DD == 1, Year != 2006) %>%
   rename(win = Ch) %>%
 mutate(win = ifelse(win==1, 1, 0))
+# win is 1 if a win, 0 if loss
 ```
 
 # Introduction: A few paragraphs which (i) motivate problem importance & relevance
@@ -84,7 +85,7 @@ director_noms %>%
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), total_best_picture = length(Pic[Pic == 1]),
-            prop_picture = total_picture/total)
+            prop_picture = total_best_picture/total)
 
 # Male leads matter a lot
 director_noms %>%
@@ -109,6 +110,31 @@ director_noms %>%
   summarise(prop_at_least_1_female_support = length(Afs[Afs>=1])/n(),
             std_dev_male_lead = sd(Afs))
 
+
+```
+
+### More EDA
+
+```{r}
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_screenplay_nom = length(Scr[Scr==1])/n())
+
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_cinematography_nom = length(Cin[Cin==1])/n())
+
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_art_nom = length(Art[Art==1])/n())
+
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_costum_nom = length(Cos[Cos==1])/n())
+
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = length(Sco[Sco==1])/n())
 
 ```
 
