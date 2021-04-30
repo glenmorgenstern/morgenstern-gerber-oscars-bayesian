@@ -72,7 +72,47 @@ ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_hist
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 ```
   
-  
+```{r}
+#Total nominations matter a lot
+director_noms %>%
+  group_by(win) %>%
+  summarise(mean_noms = mean(Nom),
+            Q1_noms = quantile(Nom, c(0.25)),
+            Q3_noms = quantile(Nom, c(0.75)))
+
+# Best picture matters a lot
+director_noms %>%
+  group_by(win) %>%
+  summarise(total = n(), total_best_picture = length(Pic[Pic == 1]),
+            prop_picture = total_picture/total)
+
+# Male leads matter a lot
+director_noms %>%
+  group_by(win) %>%
+  summarise(total = n(), prop_at_least_1_male_lead = length(Aml[Aml>=1])/n(),
+            std_dev_male_lead = sd(Aml))
+
+# Female leads matter less
+director_noms %>%
+  group_by(win) %>%
+  summarise(total = n(), prop_at_least_1_female_lead = length(Afl[Afl>=1])/n(),
+            std_dev_male_lead = sd(Afl))
+
+# Difference in both male and female supporting actors
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_at_least_1_male_support = length(Ams[Ams>=1])/n(),
+            std_dev_male_support= sd(Ams))
+
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_at_least_1_female_support = length(Afs[Afs>=1])/n(),
+            std_dev_male_lead = sd(Afs))
+
+
+```
+
+
 ## Data sources clearly described
   
 
