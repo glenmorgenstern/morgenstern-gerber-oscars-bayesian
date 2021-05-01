@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(broom)
 ```
 
 ```{r}
@@ -18,9 +19,11 @@ oscars <- read_csv("data/oscars.csv")
 director_noms <- oscars %>%
   filter(DD == 1, Year != 2006) %>%
   rename(win = Ch) %>%
-mutate(win = ifelse(win==1, 1, 0))
+  mutate(win = ifelse(win==1, 1, 0))
 # win is 1 if a win, 0 if loss
 ```
+
+# trouble with viewing win column??
 
 # Introduction: A few paragraphs which (i) motivate problem importance & relevance
 (supported by any pertinent literature), (ii) describe project goals and how such
@@ -41,6 +44,13 @@ rubric for details.
   ## reader info
   
   ## fix up wording here
+  
+  • Data sources are clearly outlined & fully described. If needed, a clear procedure is given on how to get from raw data to usable data.
+• All variables clearly identified and described for the study. Any relevant features of these variables (e.g., data type, interpretation, etc.) should be fully discussed.
+• The conclusions obtained from the proposed data can fully address project goals. If not, potential limitations in the data should be discussed fully.
+• Project goals are addressed in a comprehensive and nuanced way. 
+• Exploratory data analysis should support project goals and help guide specification of model.
+
 
   
   
@@ -74,38 +84,38 @@ ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_hist
 ```
   
 ```{r}
-#Total nominations matter a lot
+#Total nominations matter a lot RELEVANT
 director_noms %>%
   group_by(win) %>%
   summarise(mean_noms = mean(Nom),
             Q1_noms = quantile(Nom, c(0.25)),
             Q3_noms = quantile(Nom, c(0.75)))
 
-# Best picture matters a lot
+# Best picture matters a lot RELEVANT
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), total_best_picture = length(Pic[Pic == 1]),
             prop_picture = total_best_picture/total)
 
-# Male leads matter a lot
+# Male leads matter a lot RELEVANT
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), prop_at_least_1_male_lead = length(Aml[Aml>=1])/n(),
             std_dev_male_lead = sd(Aml))
 
-# Female leads matter less
+# Female leads matter less NOT RELEVANT
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), prop_at_least_1_female_lead = length(Afl[Afl>=1])/n(),
             std_dev_male_lead = sd(Afl))
 
-# Difference in both male and female supporting actors
+# Difference in both male and female supporting actors RELEVANT
 director_noms %>%
   group_by(win) %>%
   summarise(prop_at_least_1_male_support = length(Ams[Ams>=1])/n(),
             std_dev_male_support= sd(Ams))
 
-director_noms %>%
+director_noms %>% # NOT RELEVANT
   group_by(win) %>%
   summarise(prop_at_least_1_female_support = length(Afs[Afs>=1])/n(),
             std_dev_male_lead = sd(Afs))
@@ -136,7 +146,88 @@ director_noms %>%
   group_by(win) %>%
   summarise(prop_score_nom = length(Sco[Sco==1])/n())
 
+# All appear to be somewhat relevant??
 ```
+
+
+```{r}
+# double the chance
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = length(Edi[Edi==1])/n())
+
+# 2.5x the chance
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = length(Sou[Sou==1])/n())
+
+# double chance, but not too many are nominated
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = length(Eff[Eff==1])/n())
+```
+
+
+```{r}
+# Slight Advantage to Nominees
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = mean(PrN))
+
+# Slight Advantage to Winners
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_score_nom = mean(PrW))
+
+```
+
+
+```{r}
+# previous Wins
+
+# Extreme Correlation
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_gd_win = length(Gd[Gd == 1])/n())
+
+# Extreme Correlation, if they win the DGA, choose them to win the Oscar
+director_noms %>%
+  group_by(win) %>%
+  summarise(prop_DGA = length(DGA[DGA == 1])/n())
+
+
+
+```
+
+# Check for real interactions!!
+
+```{r}
+# High correlation interaction variables!!
+
+# year interactions
+
+director_wins <- director_noms %>%
+  filter(win == 1)
+
+director_wins %>%
+  summarise(mean(Art*Sco))
+
+```
+
+```{r}
+# other variables that I tested but were not significant at all: PrN, PrW, Sou, Sco, Cos, Art, Aml, Afl, Ams, Afs
+
+log.model <- glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
+                   Gd + DGA + Year
+                 , data = director_noms, family = binomial)
+
+tidy(log.model, exponentiate = FALSE, conf.int = TRUE)
+
+
+```
+## How do I check if a logistic model fits??
+
+
 
 
 ## Data sources clearly described
