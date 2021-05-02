@@ -207,7 +207,6 @@ director_noms %>%
   summarise(prop_DGA = length(DGA[DGA == 1])/n())
 
 
-
 ```
 
 # Check for real interactions!!
@@ -255,7 +254,7 @@ in detail here. See project rubric for details.
 post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
                    Gd + DGA + Year, data = director_noms,
                  family = binomial(link = "logit"), 
-                 prior = normal(0,1), prior_intercept = normal(0,1),
+                 prior = normal(0,10), prior_intercept = normal(0,1),
                  seed = 196,
                  refresh = 0)
 ```
@@ -273,10 +272,14 @@ round(posterior_interval(post1, prob = 0.95), 3)
 
 ```
 
+
+
 ```{r}
-post2 <- stan_glm(win ~ DGA + Year, data = director_noms,
+# Got rid of Nom, Gd, Eff 
+post2 <- stan_glm(win ~ Pic + Scr + Edi + Cin +
+                    DGA + Year, data = director_noms,
                  family = binomial(link = "logit"), 
-                 prior = normal(0,1), prior_intercept = normal(0,1),
+                 prior = normal(0,10), prior_intercept = normal(0,1),
                  seed = 196,
                  refresh = 0)
 ```
@@ -326,7 +329,7 @@ post0 <- stan_glm(win ~ 1, data = director_noms,
                  seed = 196,
                  refresh = 0)
 (loo0 <- loo(post0, save_psis = T))
-rstanarm::compare_models(loo0, loo1)
+rstanarm::compare_models(loo1, loo2)
 ```
 
 # Conclusion: A summary of key findings and potential impacts of your project.
