@@ -240,12 +240,21 @@ tidy(log.model, exponentiate = FALSE, conf.int = TRUE)
 ## Data sources clearly described
   
 
-# Model: Discussion & justification of the proposed Bayesian model framework
+# Model and parameters
 (prior and sampling model). This discussion should elicit prior information on the
 problem, the data sources available, and relevant project goals. Any “downstream”
 uses of the model (e.g., for prediction, optimization, ranking) should be discussed
 in detail here. See project rubric for details.
 
+We set a relatively weakly informative prior model of $Normal (0, 10)$ for model coefficients. We do this because we have rather little practical prior information on the effects of each regressor. We also wanted to leave open the possibility that a coefficient could have a negative effect on the Oscar chances. In addition, Pardoe found that using more informative priors based on results from each previous year produced equivalent, but not better results.
+
+We assumed independent priors for the purpose of this problem because while we do not know much about the Academy itself, we assumed that no film companies bribed members to vote for a certain movie in all categories. The intercept prior was $Normal(0,1)$ because it led to lower values of looic.
+
+Our sampling model used a logit link rather than a probit link for ease of interpretation. The likelihood for a single observation under this model is:
+
+${n \choose y}(\frac{e^\eta}{1+e^\eta})^y (\frac{1}{1+e^\eta})^{n-y}$
+
+We used the stan_glm function in the `rstanarm` package. This function performs full Bayesian estimation via the Markov Chain Monte Carlo method.
 
 ```{r}
 post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
@@ -257,7 +266,7 @@ post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
 ```
 
 ```{r, eval = F}
-launch_shinystan(post1)
+launch_shinystan(post2)
 ```
 
 Now we can look at posterior densities and estimates for the coefficients.
@@ -328,5 +337,21 @@ post0 <- stan_glm(win ~ 1, data = director_noms,
 (loo0 <- loo(post0, save_psis = T))
 rstanarm::compare_models(loo1, loo2)
 ```
+
+## Posterior Predictive Diagnostics
+
+```{r}
+preds <- posterior_linpred(post2, transform=TRUE)
+pred <- colMeans(preds)
+pr <- as.integer(pred >= 0.5)
+
+round(mean(xor(pr,as.integer(director_noms$win==0))),3)
+```
+
+```{r}
+ploo=E_loo(preds, loo1$psis_object, type="mean", log_ratios = -log_lik(post1))$value
+round(mean(xor(ploo>0.5,as.integer(director_noms$win==0))),3)
+```
+
 
 # Conclusion: A summary of key findings and potential impacts of your project.
