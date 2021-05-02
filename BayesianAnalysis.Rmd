@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 library(tidyverse)
 library(broom)
 require(rstanarm)
@@ -225,31 +225,10 @@ We assumed independent priors for the purpose of this problem because while we d
 Our sampling model used a logit link rather than a probit link for ease of interpretation. The likelihood for a single observation under this model is:
 
 
+![Caption for the picture.](Likelihood.png)
 
-We used the stan_glm function in the `rstanarm` package. This function performs full Bayesian estimation via the Markov Chain Monte Carlo method.
 
-```{r}
-post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
-                   Gd + DGA + Year, data = director_noms,
-                 family = binomial(link = "logit"), 
-                 prior = normal(0,10), prior_intercept = normal(0,1),
-                 seed = 196,
-                 refresh = 0)
-```
-
-```{r, eval = F}
-launch_shinystan(post2)
-```
-
-Now we can look at posterior densities and estimates for the coefficients.
-
-```{r, cache = T}
-mcmc_areas(as.matrix(post1), prob = 0.95, prob_outer = 1)
-round(coef(post1), 3)
-round(posterior_interval(post1, prob = 0.95), 3)
-
-```
-
+We used the stan_glm function in the `rstanarm` package. This function performs full Bayesian estimation via the Markov Chain Monte Carlo method. Below is our final model:
 
 
 ```{r}
@@ -268,37 +247,32 @@ round(coef(post2), 3)
 round(posterior_interval(post2, prob = 0.95), 3)
 ```
 
+This can be compared to a model with total nominations and whether the candidate won Golden Globe for Best Director.
+
+```{r}
+post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
+                   Gd + DGA + Year, data = director_noms,
+                 family = binomial(link = "logit"), 
+                 prior = normal(0,10), prior_intercept = normal(0,1),
+                 seed = 196,
+                 refresh = 0)
+```
+
+
+```{r, cache = T}
+mcmc_areas(as.matrix(post1), prob = 0.95, prob_outer = 1)
+round(coef(post1), 3)
+round(posterior_interval(post1, prob = 0.95), 3)
+```
+
+# Results
+
+## Posterior Predictive Diagnostics
 ```{r}
 (loo2 <- loo(post2, save_psis = TRUE))
 ```
 
-```{r}
-post3 <- stan_glm(win ~ Nom + Pic + Aml + Afl + Ams + Afs + Scr + Cin + Edi +
-                    Eff + Gd + DGA + Year, data = director_noms,
-                 family = binomial(link = "logit"), 
-                 prior = normal(0,1), prior_intercept = normal(0,1),
-                 seed = 196,
-                 refresh = 0)
-
-mcmc_areas(as.matrix(post3), prob = 0.95, prob_outer = 1)
-round(coef(post3), 3)
-round(posterior_interval(post3, prob = 0.95), 3)
-```
-
-```{r}
-(loo3 <- loo(post3, save_psis = TRUE))
-```
-
-# Results: Posterior analyses from the fitted Bayesian model, and a translation of
-such findings into meaningful & understandable conclusions for the target audience
-(e.g., engineers, business managers, policy-makers, etc). See project rubric for
-details.
-
-```{r, cache = T}
-(loo1 <- loo(post1, save_psis = TRUE))
-```
-
-In the code chunk above, we assessed the strength of our model via its posterior preditive LOOCV. However as we know, this accuracy rate is quite meaningless unless we have something to compare it to. So let's create a baseline model with no predictors to compare to this first model:
+In the code chunk above, we assessed the strength of our model via its posterior preditive LOOCV. However as we know, this accuracy rate is quite meaningless unless we have something to compare it to. So let's create a baseline model with no predictors to compare to our final model:
 
 ```{r, cache = T}
 post0 <- stan_glm(win ~ 1, data = director_noms,
@@ -307,11 +281,17 @@ post0 <- stan_glm(win ~ 1, data = director_noms,
                  seed = 196,
                  refresh = 0)
 (loo0 <- loo(post0, save_psis = T))
-rstanarm::compare_models(loo1, loo2)
+rstanarm::compare_models(loo2, loo0)
 ```
 
-## Posterior Predictive Diagnostics
+Loo2 (LOOCV for our final model) is much lower than the intercept-only model. And now we compare our final model with the model with the extra coefficients for total nominations and the Golden Globe.
 
+```{r, cache = T}
+(loo1 <- loo(post1, save_psis = TRUE))
+rstanarm::compare_models(loo2, loo1)
+```
+
+Below, we compute posterior predictive probabilities of the linear predictor via the posterior_linpred() function provided in the rstanarm package. We calculate these posterior predictive probabilities in order to determine the classification accuracy of our model. This method gives us 91% accuracy.
 ```{r}
 preds <- posterior_linpred(post2, transform=TRUE)
 pred <- colMeans(preds)
@@ -320,10 +300,39 @@ pr <- as.integer(pred >= 0.5)
 round(mean(xor(pr,as.integer(director_noms$win==0))),3)
 ```
 
+We could also evaluate the classification accuracy of our model on unseen data. This can be done via a LOOCV approach, as shown below. The results are similar to above, with about a 91% accuracy rate.
 ```{r}
 ploo=E_loo(preds, loo1$psis_object, type="mean", log_ratios = -log_lik(post1))$value
 round(mean(xor(ploo>0.5,as.integer(director_noms$win==0))),3)
 ```
 
+## Convergence diagnostics
 
-# Conclusion: A summary of key findings and potential impacts of your project.
+Below are some traceplots of the variables in the final model. The model clearly mixes rather well and appears stationary.
+
+![Caption for the picture.](Diag1.png)
+
+![Caption for the picture.](Diag2.png)
+
+## Interpreting Model Coefficients
+
+If all explanatory variables are equal to zero, the log-odds are equal to 82.384. The intercept from the model with no predictor variables is equal to 82.384 as an estimation for the log odds of winning Best Director.
+
+Changing Pic from 0 to 1 and holding all else equal results in a change of 1.159 in the log-odds. This means that the film being nominated for best picture multiplies the log-odds of winning Best Director by 1.159 times what it would be if film was not nominated for best picture.
+
+Increasing Scr from by 1 and holding all else equal results in a change of 0.522 in the log-odds. This means that the film being nominated for best screenplay multiplies the log-odds of winning Best Director by 0.522 times what it would be if film was not nominated for best screenplay.
+
+Changing Edi from 0 to 1 and holding all else equal results in a change of 1.024 in the log-odds.This means that the film being nominated for best editing multiplies the log-odds of winning Best Director by 1.024 times what it would be if film was not nominated for best editing.
+
+Changing Cin from 0 to 1 and holding all else equal results in a change of 0.379 in the log-odds.This means that the film being nominated for best cinematography multiplies the log-odds of winning Best Director by 0.379 times what it would be if film was not nominated for best cinematography.
+
+Changing DGA from 0 to 1 and holding all else equal results in a change of 5.281 in the log-odds.This means that the Director winning at the Director’s Guild of America multiplies the log-odds of winning Best Director by 5.281 times what it would be if the director did not win at the Director’s Guild of America.
+
+Increasing Year by 1 and holding all else equal results in a change of -0.044 in the log-odds. However, this is only because from 1932 to 1935, there were only three nominees for Best Director in each of these years.
+
+
+# Conclusion
+
+The above model is highly accurate at 91% in predicting Best Director winners at the Academy Awards. This comes close to Pardoe's 93% figure. However, this is not very informative from a prediction standpoint. First of all, data range from 1928 to 2006, which leaves out more than a decade of rapid social change, including the #MeToo campaign. It is likely that this model would have changed since 2006.
+
+The winner of the Golden Globe Best Director and the Director's Guild winner were highly multicollinear, which is why we only included Director's Guild data in our model. Even so, the winner of both of these awards is not quite the bellwether that some have thought it to be. Other characteristics of the director's movie are also very strong predictors of winning the award.
