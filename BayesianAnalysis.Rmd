@@ -2,11 +2,13 @@
 title: "Predicting the Best Director at the Oscars with Bayesian Logistic Regression"
 author: "Glen Morgenstern and Jason Gerber"
 date: "4/24/2021"
-output: pdf_document
+output: 
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r, echo = FALSE}
