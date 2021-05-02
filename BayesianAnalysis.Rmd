@@ -31,57 +31,60 @@ director_noms <- oscars %>%
 # win is 1 if a win, 0 if loss
 ```
 
-# trouble with viewing win column??
-
 # Introduction: A few paragraphs which (i) motivate problem importance & relevance
-(supported by any pertinent literature), (ii) describe project goals and how such
-goals address the problem, (iii) a high-level roadmap of the proposed Bayesian
-modeling framework, and (iv) other relevant information for the reader. See project
-rubric for details.
 
-  Billions of people around the globe watch movies, and millions tune in to watch the Academy Awards every year(citation). 
+  Every year, billions of people around the globe watch movies, and millions tune in to watch the Academy Awards. This awards show is heavily publicized, promoted, and talked about every year, where millions of fans tune in to watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States. All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises.
   
-  The goal of this project is to create a model which will predict with as much accuracy as possible the four major category winners at the Oscars. The Academy Awards is heavily publicized, promoted, and talked about every year, where millions of fans tune in to watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States.
+  The goal of this project is to develop a model which will predict with as much accuracy as possible the winner of the "Best Director" category at the Oscars. Being able to predict Oscar winners is an analysis which many across the globe will have an interest in, whether they be data-lovers, typical cinephiles, or even gamblers who feel that they need an edge. 
   
-  All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises. 
-  
-  The goal of this project is to create a model which will predict with as much accuracy as possible the four major category winners at the Oscars, which include Best Lead Actor, Best Lead Actress, Best Picture, and Best Director. Being able to predict Oscar winners is an analysis which many across the globe will have an interest in, whether they be data-lovers, typical cinephiles, or even gamblers who feel that they need an edge. 
-  
-  ## high level roadmap of proposed modeling framework.
-  
-  ## reader info
-  
-  ## fix up wording here
-  
-  • Data sources are clearly outlined & fully described. If needed, a clear procedure is given on how to get from raw data to usable data.
-• All variables clearly identified and described for the study. Any relevant features of these variables (e.g., data type, interpretation, etc.) should be fully discussed.
-• The conclusions obtained from the proposed data can fully address project goals. If not, potential limitations in the data should be discussed fully.
-• Project goals are addressed in a comprehensive and nuanced way. 
-• Exploratory data analysis should support project goals and help guide specification of model.
-
-
-  
-  
-  
+  To achieve our goal, we will take several steps. First, we will perform exploratory data analysis on the data set we have in order to discover which variables have the potential to be explanatory variables for the model. Second, we will establish a clear prior for the model. Third, we will determine which explanatory variables should be used for the model by combining them with the prior to form a posterior, by creating several Bayesian logistical regression models and testing until we reach a model with optimal fit. Lastly, we will interpret the model coefficients and discuss its applications.
 
 # Data: A couple of paragraphs describing the data to be used. You may wish to
-discuss: (i) data sources – where are you getting the data? (ii) data description –
-what data / variables will be used for modeling? (iii) data type – ordinal discrete,
-nominal discrete, continuous, etc., and (iv) data scraping / wrangling – how to
-extract and clean data for modeling? See project rubric for details.
 
-  The data set that we are using for this analysis is one that contains information about all Oscar nominations from 1928-2006 for the four major academy awards: Best Picture, Best Director, Best Leading Actor, and Best Leading Actress. The data has been taken from the personal website of Iain Pardoe, an online educator in mathematics and statistics. 
+  The data set that we are using for this analysis is one that contains information about all Oscar nominations from 1928-2006. The data has been taken from the personal website of Iain Pardoe, an online educator in mathematics and statistics, in the form of a csv, which we read into R and made into a data frame. 
   
-  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a candidate wins their award type or not. The data set given has 62 variables, of which 4 are indicator variables indicating if the nominee is up for that award. For example, if Kate Winslet is nominated for best leading actress, the variable FF(lead actress indicator) will equal 1, while the indicator variables for lead actor, best picture, and best director will equal 0. These variables will help us separate to make four separate models, one for predicting each award type,
+  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins best director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. For example, if Martin Scorsese is nominated for best director, the variable DD(director nominee indicator) will equal 1. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
   
-  Our explanatory variables include the year the movie was produced, as well as several statistics involving other people who worked on the movie that the award nominee is from. For example, there is an indicator variable that specifies if the editing in the movie was nominated for an Oscar, a number of times the lead actor for the movie was previously nominated, and more similar variables. The basic idea is to predict if the nominee will win the award based on the strength of the rest of the movie and its cast. 
-  
-  Additionally, there are several interaction variables already built into the data
-  ### Glen, idk if we want to add MORE interactions?
-  
-  ## Limitations
+  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables relevant to our model. In other words, we did not perform EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not show any correlation with the director winning Best Director. This was true for all built-in interaction variables as well.
 
-## Project Goals
+  The variables that we performed EDA on are described below:
+    
+    Nom: The total number of oscar nominations that the director's movie received.
+    
+    Pic: An indicator variable that specifies if the director's movie was also nominated for best picture.
+    
+    Aml and Afl: Indicator variables that specify if the lead actor or actress in the director's movie was nominated for best lead actor or actress, respectively.
+    
+    Ams and Afs: Indicator variables that specify if the supporting actor or actress in the director's movie was nominated for best supporting actor or actress, respectively.
+    
+    Scr: An indicator variable that specifies if the director's movie was also nominated for best screenplay.
+    
+    Cin: An indicator variable that specifies if the director's movie was also nominated for best cinematography.
+    
+    Art: An indicator variable that specifies if the director's movie was also nominated for best art direction.
+    
+    Cos: An indicator variable that specifies if the director's movie was also nominated for best costumes.
+    
+    Sco: An indicator variable that specifies if the director's movie was also nominated for best muscial score.
+    
+    Edi: An indicator variable that specifies if the director's movie was also nominated for best editing.
+    
+    Sou: An indicator variable that specifies if the director's movie was also nominated for best sound mixing.
+    
+    Eff: An indicator variable that specifies if the director's movie was also nominated for best special effects.
+    
+    PrN: The total number of oscar nominations that the director and actors for the movie had received previously.
+    
+    PrW: The total number of oscars that the director and actors for the movie had won previously.
+    
+    Gd: An indicator variable that specifies if the director's movie won a Golden Globe for Directing earlier in the same award season.
+    
+    DGA: An indicator variable that specifies if the director won an award from the Director's Guild of America earlier in the same award season.
+    
+    Year: The Year that the movie was nominated for an Oscar.
+
+
+
   
 ## EDA
 
@@ -92,38 +95,38 @@ ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_hist
 ```
   
 ```{r}
-#Total nominations matter a lot RELEVANT
+#Total nominations matter a lot
 director_noms %>%
   group_by(win) %>%
   summarise(mean_noms = mean(Nom),
             Q1_noms = quantile(Nom, c(0.25)),
             Q3_noms = quantile(Nom, c(0.75)))
 
-# Best picture matters a lot RELEVANT
+# Best picture matters a lot
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), total_best_picture = length(Pic[Pic == 1]),
             prop_picture = total_best_picture/total)
 
-# Male leads matter a lot RELEVANT
+# Male leads matter a lot 
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), prop_at_least_1_male_lead = length(Aml[Aml>=1])/n(),
             std_dev_male_lead = sd(Aml))
 
-# Female leads matter less NOT RELEVANT
+# Female leads matter less 
 director_noms %>%
   group_by(win) %>%
   summarise(total = n(), prop_at_least_1_female_lead = length(Afl[Afl>=1])/n(),
             std_dev_male_lead = sd(Afl))
 
-# Difference in both male and female supporting actors RELEVANT
+# Difference in both male and female supporting actors
 director_noms %>%
   group_by(win) %>%
   summarise(prop_at_least_1_male_support = length(Ams[Ams>=1])/n(),
             std_dev_male_support= sd(Ams))
 
-director_noms %>% # NOT RELEVANT
+director_noms %>%
   group_by(win) %>%
   summarise(prop_at_least_1_female_support = length(Afs[Afs>=1])/n(),
             std_dev_male_lead = sd(Afs))
