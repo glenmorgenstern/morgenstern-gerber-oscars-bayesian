@@ -25,7 +25,7 @@ require(HSAUR3)
 library(patchwork)
 ```
 
-```{r, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 oscars <- read_csv("data/oscars.csv")
 director_noms <- oscars %>%
   filter(DD == 1, Year != 2006) %>%
@@ -34,57 +34,33 @@ director_noms <- oscars %>%
 # win is 1 if a win, 0 if loss
 ```
 
-# Introduction: A few paragraphs which (i) motivate problem importance & relevance
+# Introduction
 
-  Every year, billions of people around the globe watch movies, and many tune in to watch the Academy Awards. This awards show is heavily publicized, promoted, and talked about every year, where millions of fans watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States. All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises.
+  Every year, billions of people around the globe watch movies, and many tune in to watch the Academy Awards. This awards show is heavily publicized, promoted, and talked about every year, where millions of fans watch the ceremony and tens of millions read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States. All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises.
   
   The goal of this project is to develop a model which will predict with as much accuracy as possible the winner of the "Best Director" category at the Oscars. Being able to predict Oscar winners is an analysis which many across the globe will have an interest in, whether they be data-lovers, typical cinephiles, or even gamblers who feel that they need an edge. 
   
   To achieve our goal, we will take several steps. First, we will perform exploratory data analysis on the data set we have in order to discover which variables have the potential to be explanatory variables for the model. Second, we will establish a clear prior for the model. Third, we will determine which explanatory variables should be used for the model by combining them with the prior to form a posterior, by creating several Bayesian logistical regression models and testing until we reach a model with optimal fit. Lastly, we will interpret the model coefficients and discuss its applications.
 
-# Data: A couple of paragraphs describing the data to be used. You may wish to
+# Data
 
   The data set that we are using for this analysis is one that contains information about all Oscar nominations from 1928-2006. The data has been taken from the personal website of Iain Pardoe, an online educator in mathematics and statistics, in the form of a csv, which we read into R and made into a data frame. 
   
-  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins best director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. For example, if Martin Scorsese is nominated for best director, the variable DD(director nominee indicator) will equal 1. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
+  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins best director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
   
-  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables which might be relevant to our model. In other words, we did not perform EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not have any relevance or correlation with the director winning Best Director. This was true for all built-in interaction variables as well.
+  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables which might be relevant to our model. In other words, we will not display EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not have any relevance or correlation with the director winning Best Director.
 
   The variables that we performed EDA on are described below:
     
-    Nom: The total number of oscar nominations that the director's movie received.
-    
-    Pic: An indicator variable that specifies if the director's movie was also nominated for best picture.
-    
-    Aml and Afl: Variables that indicate how many lead actors or actresses in the director's movie were nominated for best lead actor or actress, respectively.
-    
-    Ams and Afs: Variables that indicate how many lead actors or actresses in the director's movie were nominated for best supporting actor or actress, respectively.
-    
-    Scr: An indicator variable that specifies if the director's movie was also nominated for best screenplay.We are unsure why there would be any reason why Scr is equal to 2, as the same movie cannot be nominated twice for best screenplay. We believe that is an issue in the data, though miniscule. 
-    
-    Cin: An indicator variable that specifies if the director's movie was also nominated for best cinematography.
-    
-    Art: An indicator variable that specifies if the director's movie was also nominated for best art direction.
-    
-    Cos: An indicator variable that specifies if the director's movie was also nominated for best costumes.
-    
-    Sco: An indicator variable that specifies if the director's movie was also nominated for best muscial score.We are unsure why there would be any reason why Sco is equal to 2, as the same movie cannot be nominated twice for best score. We believe that is an issue in the data, though miniscule. 
-    
-    Edi: An indicator variable that specifies if the director's movie was also nominated for best editing.
-    
-    Sou: An indicator variable that specifies if the director's movie was also nominated for best sound mixing.
-    
-    Eff: An variable that specifies if the director's movie was nominated for sound editing, visual effects, or both. For both, Eff = 2, for one and not the other, Eff = 1, and for neither, Eff = 0. 
-    
-    PrN: The total number of oscar nominations that the director and actors for the movie had received previously.
-    
-    PrW: The total number of oscars that the director and actors for the movie had won previously.
-    
-    Gd: An indicator variable that specifies if the director's movie won a Golden Globe for Directing earlier in the same award season.
-    
-    DGA: An indicator variable that specifies if the director won an award from the Director's Guild of America earlier in the same award season.
-    
-    Year: The Year that the movie was nominated for an Oscar.
+Nom: The total number of Oscar nominations that the director's movie received.
+Pic: Director's movie was also nominated for best picture (indicator).
+Scr: Director's movie was also nominated for best screenplay. We are unsure why there would be any reason why Scr is equal to 2, as the same movie cannot be nominated twice for best screenplay. We believe that is an issue in the data, though miniscule.
+Cin: Director's movie was also nominated for best cinematography (indicator).
+Edi: Director's movie was also nominated for best editing (indicator).
+Eff: A variable that specifies if the director's movie was nominated for sound editing, visual effects, or both. For both, Eff = 2, for one and not the other, Eff = 1, and for neither, Eff = 0. 
+Gd: Director's movie won a Golden Globe for Directing in the same award season(indicator).
+DGA: Director's Guild of America win (indicator).
+Year: The Year that the movie was nominated for an Oscar.
     
 
 ## Exploratory Data Analysis
@@ -94,33 +70,7 @@ ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_hist
   labs(title = "Total Oscar Nominations", x = "Total Nominations")  + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 ```
-The above analysis makes it appear that the more nominations a movie has, the more likely the Director is to win an Oscar. This is enough correlation to warrant adding it to our initial model. 
-
-```{r}
-a<- ggplot(director_noms, aes(fill = as.character(win), x = Aml)) +
-  geom_histogram(binwidth = 1) + 
-  labs(x = "Number of Lead Actors Nominated", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-b <- ggplot(director_noms, aes(fill = as.character(win), x = Afl)) +
-  geom_histogram(binwidth = 1) + 
-  labs(x = "Number of Lead Actresses Nominated", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-c<- ggplot(director_noms, aes(fill = as.character(win), x = Ams)) +
-  geom_histogram(binwidth = 1) + 
-  labs(x = "Number of Supporting Actors Nominated", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-d <- ggplot(director_noms, aes(fill = as.character(win), x = Afs)) +
-  geom_histogram(binwidth = 1) + 
-  labs(x = "Number of Supporting Actresses Nominated", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-(a + b) / (c + d)
-```
-The only variable out of the above that may have some correlation is number of lead actors nominated. However, when added to the model, this was insignificant and increased looic, so we did not keep it in any model. The other three others(number of supporting actors, number of supporting actresses, and number of lead actors) do not have any obvious correlation with Director wins, so we shall not add them to the model.
-
+The above analysis makes it appear that the more nominations a movie has, the more likely the director is to win an Oscar. This is enough correlation to warrant adding it to our initial model. 
 
 ```{r}
 e <- ggplot(director_noms, aes(fill = as.character(win), x = Pic)) +
@@ -139,58 +89,15 @@ g <- ggplot(director_noms, aes(fill = as.character(win), x = Cin)) +
   labs(x = "Best Cinematography Nomination", y = "count") + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-h <- ggplot(director_noms, aes(fill = as.character(win), x = Art)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Best Art Direction Nomination", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-i <- ggplot(director_noms, aes(fill = as.character(win), x = Cos)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Best Costumes Nomination", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-# not indicator
-j <- ggplot(director_noms, aes(fill = as.character(win), x = Sco)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Best Musical Score Nomination", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
 k <- ggplot(director_noms, aes(fill = as.character(win), x = Edi)) +
   geom_histogram(binwidth = 1) +
   labs(x = "Best Editing Nomination", y = "count") + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-l <- ggplot(director_noms, aes(fill = as.character(win), x = Sou)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Best Sound Mixing Nomination", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-
-
-
-
-
-
-(e + f + g + h)/(i + j + k + l)
-```
-Of the above, Picture, Cinematogrpahy, Editing, Sound Mixing, Musical Score and Screenplay all appear to have a much higher proportion of wins if they are nominated in any of those categories. Therefore, we shall add them to the initial model. Costumes and Art Direction seem rather irrelevant in terms of predicting the winner of best director, so we shall not add them. 
-
-
-```{r}
 m <- ggplot(director_noms, aes(fill = as.character(win), x = Eff)) +
   geom_bar(position = "fill") +
-  labs(x = "Best Special Effects Nomination", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-n <- ggplot(director_noms, aes(fill = as.character(win), x = PrN)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Total # of Previous Nominations across Cast", y = "count") + 
-  scale_fill_manual(name = "Won", values = c("blue", "red"))
-
-
-o <- ggplot(director_noms, aes(fill = as.character(win), x = PrW)) +
-  geom_histogram(binwidth = 1) +
-  labs(x = "Total # of Previous Oscar Wins across Cast", y = "count") + 
+  labs(x = "Best Special Effects Nomination", y = "prop") + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 
 p <- ggplot(director_noms, aes(fill = as.character(win), x = Gd)) +
@@ -209,26 +116,28 @@ r <- ggplot(director_noms, aes(fill = as.character(win), x = Year)) +
   labs(x = "Year of Oscars", y = "count") + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-(m + n)/(o + p)/ (q + r)
+(e + f)/ (g + k) /(m + p) / (q + r)
 ```
-Previous Oscar Wins, Previous Oscar Nominations, and Special Effects do not appear to be clear predictors of a Director win, so we will not add them to the model. However, Golden Globe Winner, and Director's Guild of America Winner, and Year do, so we shall add them.
+All of the above variables appear to show some correlation in a difference between an increase in them and an increase in the proportion of wins (except for year, which has a greater proportion of wins in the first decade). 
 
-Ultimately, we have chosen variables DGA, Year, Gd, Sou, Edi, Sco, Scr, Cin, Pic, and Nom as our possible predictors. 
+The proportion of Best Director winners given a best picture nomination is much higher than without a best picture nomination, and similarly, the proportion of Best Director winners also increases as Screenplay, Cinematography, Editing, Golden Globe winner, and Director’s Guild of America winner goes from 0 to 1. Even Special Effects appears to have a larger proportion of Best Director winners given 1 or 2 special effects nominations. Lastly, year clearly has a higher proportion of wins in the first decade of the Oscars. 
+
+We have chosen all of these variables as our possible predictors: DGA, Year, Gd, Edi, Scr, Cin, Pic, Nom, and Eff.
   
 
 # Model and parameters
 
 We set a relatively weakly informative prior model of Normal (0, 10) for model coefficients. We do this because we have rather little practical prior information on the effects of each regressor. We also wanted to leave open the possibility that a coefficient could have a negative effect on the Oscar chances. In addition, Pardoe found that using more informative priors based on results from each previous year produced equivalent, but not better results.
 
-We assumed independent priors for the purpose of this problem because while we do not know much about the Academy itself, we assumed that no film companies bribed members to vote for a certain movie in all categories. The intercept prior was Normal(0,1) because it led to lower values of looic.
+We assumed independent priors for the purpose of this problem because while we do not know much about the Academy itself, we assumed that no film companies bribed members to vote for a certain movie in all categories. The intercept prior was set to Normal(0,1) because it led to lower values of looic.
 
-Our sampling model used a logit link rather than a probit link for ease of interpretation. The likelihood for a single observation under this model is:
-
-
-![Caption for the picture.](Likelihood.png)
+Our sampling model used a logit link rather than a probit link for ease of interpretation. Below is the likelihood for a single observation under this model:
 
 
-We used the stan_glm function in the `rstanarm` package. This function performs full Bayesian estimation via the Markov Chain Monte Carlo method. Below is our final model:
+![Likelihood](Likelihood.png)
+
+
+We used the stan_glm function in the `rstanarm` package to sample from the posterior. This function performs full Bayesian estimation via the Markov Chain Monte Carlo method. Below is our final model, with a graphic in Appendix I:
 
 
 ```{r}
@@ -242,9 +151,7 @@ post2 <- stan_glm(win ~ Pic + Scr + Edi + Cin +
 ```
 
 ```{r}
-mcmc_areas(as.matrix(post2), prob = 0.95, prob_outer = 1)
-round(coef(post2), 3)
-round(posterior_interval(post2, prob = 0.95), 3)
+knitr::kable(round(posterior_interval(post2, prob = 0.95), 3), digits = 2)
 ```
 
 This can be compared to a model with total nominations and whether the candidate won Golden Globe for Best Director.
@@ -260,21 +167,19 @@ post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
 
 
 ```{r, cache = T}
-mcmc_areas(as.matrix(post1), prob = 0.95, prob_outer = 1)
-round(coef(post1), 3)
-round(posterior_interval(post1, prob = 0.95), 3)
+knitr::kable(round(posterior_interval(post1, prob = 0.95), 3), digits = 2)
 ```
 
 # Results
 
 ## Posterior Predictive Diagnostics
-```{r}
+```{r, results = FALSE}
 (loo2 <- loo(post2, save_psis = TRUE))
 ```
 
-In the code chunk above, we assessed the strength of our model via its posterior preditive LOOCV. However as we know, this accuracy rate is quite meaningless unless we have something to compare it to. So let's create a baseline model with no predictors to compare to our final model:
+We assessed the strength of our model via its posterior preditive LOOCV and found a looic of 202.9. However, this accuracy rate is quite meaningless unless we have something to compare it to. We created a baseline model with only an intercept to compare to our final model. Its looic value was 735.1.
 
-```{r, cache = T}
+```{r, warning = FALSE, message = FALSE, cache = T, results = FALSE}
 post0 <- stan_glm(win ~ 1, data = director_noms,
                  family = binomial(link = "logit"), 
                  prior = normal(0,1), prior_intercept = normal(0,1),
@@ -284,15 +189,15 @@ post0 <- stan_glm(win ~ 1, data = director_noms,
 rstanarm::compare_models(loo2, loo0)
 ```
 
-Loo2 (LOOCV for our final model) is much lower than the intercept-only model. And now we compare our final model with the model with the extra coefficients for total nominations and the Golden Globe.
+Loo2 (LOOCV for our final model) is much lower than the intercept-only model. And now we compare our final model with the model with the extra coefficients for total nominations and the Golden Globe. Its looic was 205.3, which is larger than our final model.
 
-```{r, cache = T}
+```{r, warning = FALSE, message = FALSE, cache = T, results = FALSE}
 (loo1 <- loo(post1, save_psis = TRUE))
 rstanarm::compare_models(loo2, loo1)
 ```
 
-Below, we compute posterior predictive probabilities of the linear predictor via the posterior_linpred() function provided in the rstanarm package. We calculate these posterior predictive probabilities in order to determine the classification accuracy of our model. This method gives us 91% accuracy.
-```{r}
+We computed posterior predictive probabilities of the linear predictor via the posterior_linpred() function provided in the rstanarm package. We calculate these posterior predictive probabilities in order to determine the classification accuracy of our model. This method gives us 91% accuracy.
+```{r, results = FALSE}
 preds <- posterior_linpred(post2, transform=TRUE)
 pred <- colMeans(preds)
 pr <- as.integer(pred >= 0.5)
@@ -300,19 +205,15 @@ pr <- as.integer(pred >= 0.5)
 round(mean(xor(pr,as.integer(director_noms$win==0))),3)
 ```
 
-We could also evaluate the classification accuracy of our model on unseen data. This can be done via a LOOCV approach, as shown below. The results are similar to above, with about a 91% accuracy rate.
-```{r}
+We could also evaluate the classification accuracy of our model on unseen data. This can be done via a LOOCV approach. The results are similar to above, with about a 91% accuracy rate.
+```{r, results = FALSE}
 ploo=E_loo(preds, loo1$psis_object, type="mean", log_ratios = -log_lik(post1))$value
 round(mean(xor(ploo>0.5,as.integer(director_noms$win==0))),3)
 ```
 
 ## Convergence diagnostics
 
-Below are some traceplots of the variables in the final model. The model clearly mixes rather well and appears stationary.
-
-![Caption for the picture.](Diag1.png)
-
-![Caption for the picture.](Diag2.png)
+Appendix II shows some traceplots of the variables in the final model. The model clearly mixes rather well and appears stationary.
 
 ## Interpreting Model Coefficients
 
@@ -336,3 +237,16 @@ Increasing Year by 1 and holding all else equal results in a change of -0.044 in
 The above model is highly accurate at 91% in predicting Best Director winners at the Academy Awards. This comes close to Pardoe's 93% figure. However, this is not very informative from a prediction standpoint. First of all, data range from 1928 to 2006, which leaves out more than a decade of rapid social change, including the #MeToo campaign. It is likely that this model would have changed since 2006.
 
 The winner of the Golden Globe Best Director and the Director's Guild winner were highly multicollinear, which is why we only included Director's Guild data in our model. Even so, the winner of both of these awards is not quite the bellwether that some have thought it to be. Other characteristics of the director's movie are also very strong predictors of winning the award.
+
+# Appendix
+
+### Appendix I
+```{r}
+mcmc_areas(as.matrix(post2), prob = 0.95, prob_outer = 1)
+```
+
+### Appendix II
+
+![Convergence Diagnostics](Diag1.png) {#id .class width=50% height=50%}
+
+![Convergence Diagnostics, cont.](Diag2.png) {#id .class width=50% height=50%}
