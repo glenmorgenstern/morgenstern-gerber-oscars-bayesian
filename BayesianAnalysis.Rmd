@@ -1,5 +1,5 @@
 ---
-title: "STA 360 Final Project"
+title: "Predicting the Best Director at the Oscars with Bayesian Logistic Regression"
 author: "Glen Morgenstern and Jason Gerber"
 date: "4/24/2021"
 output: pdf_document
@@ -83,10 +83,7 @@ director_noms <- oscars %>%
     
     Year: The Year that the movie was nominated for an Oscar.
 
-
-
-  
-## EDA
+## Exploratory Data Analysis
 
 ```{r}
 ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_histogram(binwidth = 1) + 
