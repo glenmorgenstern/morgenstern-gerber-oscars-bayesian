@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, echo = FALSE}
 library(tidyverse)
 library(broom)
 require(rstanarm)
@@ -20,9 +20,10 @@ require(bayesplot)
 require(caret)
 library(rstan)
 require(HSAUR3)
+library(patchwork)
 ```
 
-```{r}
+```{r, echo = FALSE}
 oscars <- read_csv("data/oscars.csv")
 director_noms <- oscars %>%
   filter(DD == 1, Year != 2006) %>%
@@ -33,7 +34,7 @@ director_noms <- oscars %>%
 
 # Introduction: A few paragraphs which (i) motivate problem importance & relevance
 
-  Every year, billions of people around the globe watch movies, and millions tune in to watch the Academy Awards. This awards show is heavily publicized, promoted, and talked about every year, where millions of fans tune in to watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States. All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises.
+  Every year, billions of people around the globe watch movies, and many tune in to watch the Academy Awards. This awards show is heavily publicized, promoted, and talked about every year, where millions of fans watch the ceremony and tens of millions(perhaps more) read about it later. Receiving an Oscar is the highest honor that one can procure in the business of movie-making, and since movies are such a large industry and many of our country's most influential celebrities are movie stars, the Oscars is one of the biggest events there is each year in the United States. All this attention inevitably leads to general curiosity and predictions about who will take home the most prized awards in all of filmmaking, which is where the reason for this project arises.
   
   The goal of this project is to develop a model which will predict with as much accuracy as possible the winner of the "Best Director" category at the Oscars. Being able to predict Oscar winners is an analysis which many across the globe will have an interest in, whether they be data-lovers, typical cinephiles, or even gamblers who feel that they need an edge. 
   
@@ -45,7 +46,7 @@ director_noms <- oscars %>%
   
   In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins best director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. For example, if Martin Scorsese is nominated for best director, the variable DD(director nominee indicator) will equal 1. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
   
-  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables relevant to our model. In other words, we did not perform EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not show any correlation with the director winning Best Director. This was true for all built-in interaction variables as well.
+  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables which might be relevant to our model. In other words, we did not perform EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not have any relevance or correlation with the director winning Best Director. This was true for all built-in interaction variables as well.
 
   The variables that we performed EDA on are described below:
     
@@ -85,159 +86,135 @@ director_noms <- oscars %>%
 
 ## Exploratory Data Analysis
 
-```{r}
+```{r, echo = FALSE}
 ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_histogram(binwidth = 1) + 
   labs(title = "Total Oscar Nominations", x = "Total Nominations")  + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 ```
-  
-```{r}
-#Total nominations matter a lot
-director_noms %>%
-  group_by(win) %>%
-  summarise(mean_noms = mean(Nom),
-            Q1_noms = quantile(Nom, c(0.25)),
-            Q3_noms = quantile(Nom, c(0.75)))
-
-# Best picture matters a lot
-director_noms %>%
-  group_by(win) %>%
-  summarise(total = n(), total_best_picture = length(Pic[Pic == 1]),
-            prop_picture = total_best_picture/total)
-
-# Male leads matter a lot 
-director_noms %>%
-  group_by(win) %>%
-  summarise(total = n(), prop_at_least_1_male_lead = length(Aml[Aml>=1])/n(),
-            std_dev_male_lead = sd(Aml))
-
-# Female leads matter less 
-director_noms %>%
-  group_by(win) %>%
-  summarise(total = n(), prop_at_least_1_female_lead = length(Afl[Afl>=1])/n(),
-            std_dev_male_lead = sd(Afl))
-
-# Difference in both male and female supporting actors
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_at_least_1_male_support = length(Ams[Ams>=1])/n(),
-            std_dev_male_support= sd(Ams))
-
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_at_least_1_female_support = length(Afs[Afs>=1])/n(),
-            std_dev_male_lead = sd(Afs))
-
-
-```
-
-### More EDA
+The above analysis makes it appear that the more nominations a movie has, the more likely the Director is to win an Oscar. This is enough correlation to warrant adding it to our initial model. 
 
 ```{r}
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_screenplay_nom = length(Scr[Scr==1])/n())
+a<- ggplot(director_noms, aes(fill = as.character(win), x = Aml)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Number of Lead Actors Nominated", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_cinematography_nom = length(Cin[Cin==1])/n())
+b <- ggplot(director_noms, aes(fill = as.character(win), x = Afl)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Number of Lead Actresses Nominated", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_art_nom = length(Art[Art==1])/n())
+c<- ggplot(director_noms, aes(fill = as.character(win), x = Ams)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Number of Supporting Actors Nominated", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_costum_nom = length(Cos[Cos==1])/n())
+d <- ggplot(director_noms, aes(fill = as.character(win), x = Afs)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Number of Supporting Actresses Nominated", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = length(Sco[Sco==1])/n())
-
-# All appear to be somewhat relevant??
+(a + b) / (c + d)
 ```
+The only variable out of the above that may have some correlation and should be added to the original model is number of lead actors nominated. The other three(number of supporting actors, number of supporting actresses, and number of lead actors) do not have any obvious correlation with Director wins, so we shall not add them to the model.
 
+
+
+
+The graph above shows a bivariate graph for two indicator variables, Best Picture Nomination and Best Director win. The graph appears to show a much larger chance of winning best director if nominated for best picture, so we shall Pic to our model.
 
 ```{r}
-# double the chance
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = length(Edi[Edi==1])/n())
+e <- ggplot(director_noms, aes(fill = as.character(win), x = Pic)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Best Picture Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-# 2.5x the chance
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = length(Sou[Sou==1])/n())
+# not indicator
+f <-  ggplot(director_noms, aes(fill = as.character(win), x = Scr)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Screenplay Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-# double chance, but not too many are nominated
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = length(Eff[Eff==1])/n())
+g <- ggplot(director_noms, aes(fill = as.character(win), x = Cin)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Best Cinematography Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+h <- ggplot(director_noms, aes(fill = as.character(win), x = Art)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Art Direction Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+i <- ggplot(director_noms, aes(fill = as.character(win), x = Cos)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Costumes Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+# not indicator
+j <- ggplot(director_noms, aes(fill = as.character(win), x = Sco)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Musical Score Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+k <- ggplot(director_noms, aes(fill = as.character(win), x = Edi)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Editing Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+l <- ggplot(director_noms, aes(fill = as.character(win), x = Sou)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Best Sound Mixing Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+
+
+
+
+
+
+(e + f + g + h)/(i + j + k + l)
 ```
-
-
-```{r}
-# Slight Advantage to Nominees
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = mean(PrN))
-
-# Slight Advantage to Winners
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_score_nom = mean(PrW))
-
-```
+Of the above, Picture, Cinematogrpahy, Editing, Sound Mixing, Musical Score and Screenplay all appear to have a much higher proportion of wins if they are nominated in any of those categories. Therefore, we shall add them to the initial model. Costumes and Art Direction seem rather irrelevant in terms of predicting the winner of best director, so we shall not add them. 
 
 
 ```{r}
-# previous Wins
+m <- ggplot(director_noms, aes(fill = as.character(win), x = Eff)) +
+  geom_bar(position = "fill") +
+  labs(x = "Best Special Effects Nomination", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-# Extreme Correlation
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_gd_win = length(Gd[Gd == 1])/n())
-
-# Extreme Correlation, if they win the DGA, choose them to win the Oscar
-director_noms %>%
-  group_by(win) %>%
-  summarise(prop_DGA = length(DGA[DGA == 1])/n())
+n <- ggplot(director_noms, aes(fill = as.character(win), x = PrN)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Total # of Previous Nominations across Cast", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
 
 
+o <- ggplot(director_noms, aes(fill = as.character(win), x = PrW)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Total # of Previous Oscar Wins across Cast", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+p <- ggplot(director_noms, aes(fill = as.character(win), x = Gd)) +
+  geom_histogram(binwidth = 1) +
+  labs(x = "Golden Globe Winner (1 is Yes, 0 is No)", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+
+q <- ggplot(director_noms, aes(fill = as.character(win), x = DGA)) +
+  geom_histogram(binwidth = 1) + 
+  labs(x = "Director's Guild of America Winner (1 is Yes, 0 is No)", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+r <- ggplot(director_noms, aes(fill = as.character(win), x = Year)) +
+  geom_histogram(binwidth = 10) + 
+  labs(x = "Year of Oscars", y = "count") + 
+  scale_fill_manual(name = "Won", values = c("blue", "red"))
+
+(m + n)/(o + p)/ (q + r)
 ```
+Previous Oscar Wins, Previous Oscar Nominations, and Special Effects do not appear to be clear predictors of a Director win, so we will not add them to the model. However, Golden Globe Winner, and Director's Guild of America Winner, and Year do, so we shall add them.
 
-# Check for real interactions!!
-
-```{r}
-# High correlation interaction variables!!
-
-# year interactions
-
-director_wins <- director_noms %>%
-  filter(win == 1)
-
-director_wins %>%
-  summarise(mean(Art*Sco))
-
-```
-
-```{r}
-# other variables that I tested but were not significant at all: PrN, PrW, Sou, Sco, Cos, Art, Aml, Afl, Ams, Afs
-
-log.model <- glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
-                   Gd + DGA + Year
-                 , data = director_noms, family = binomial)
-
-tidy(log.model, exponentiate = FALSE, conf.int = TRUE)
-
-
-```
-## How do I check if a logistic model fits??
-
-
-
-
-## Data sources clearly described
+Ultimately, we have chosen variables DGA, Year, Gd, Sou, Edi, Sco, Scr, Cin, Pic, and Nom as our possible predictors. 
   
 
 # Model and parameters
