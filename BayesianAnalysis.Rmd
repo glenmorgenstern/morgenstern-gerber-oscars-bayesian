@@ -44,30 +44,30 @@ director_noms <- oscars %>%
 
 # Data
 
-  The data set that we are using for this analysis contains information about all Oscar nominations from 1928-2006. The data have been taken from the personal [website] (http://www.stat.columbia.edu/~gelman/arm/examples/academy.awards/) of Iain Pardoe, an online educator in mathematics and statistics, in the form of a csv, which we read into R and made into a data frame. 
+  The data set that we are using for this analysis contains information about all Oscar nominations from 1928-2006. The data have been taken from the personal website (http://www.stat.columbia.edu/~gelman/arm/examples/academy.awards/) of Iain Pardoe, an online educator in mathematics and statistics, in the form of a csv, which we analyzed in R.
   
-  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins best director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
+  In our model, we will attempt to use all relevant variables that may be significant predictors of whether a director wins Best Director or not. The data set given has 62 variables, of which one is an indicator variable specifying if the nominee is up for Best Director, and one of which is an indicator variable specifying if the nominee won their award or not. We will create our data set using only the instances where DD is equal to 1, as we are only focusing on predicting winners among nominated directors.
   
-  To decide which variables to use, we performed EDA on many variables, but since we have limited space, we are only discussing the variables which might be relevant to our model. In other words, we will not display EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not have any relevance or correlation with the director winning Best Director.
+  To decide which variables to include in our model, we performed EDA on many variables, but since we have limited space, we are only discussing the variables which might be relevant to our model. In other words, we will not display EDA on variables like AD (Whether the Assistant Director was nominated) because it simply did not have any relevance or correlation with the director winning Best Director.
 
-  The variables that we performed EDA on are described below:
+  The variables that we performed EDA on are described and displayed below:
     
-Nom: The total number of Oscar nominations that the director's movie received.
-Pic: Director's movie was also nominated for best picture (indicator).
-Scr: Director's movie was also nominated for best screenplay. We are unsure why there would be any reason why Scr is equal to 2, as the same movie cannot be nominated twice for best screenplay. We believe that is an issue in the data, though miniscule.
-Cin: Director's movie was also nominated for best cinematography (indicator).
-Edi: Director's movie was also nominated for best editing (indicator).
-Eff: A variable that specifies if the director's movie was nominated for sound editing, visual effects, or both. For both, Eff = 2, for one and not the other, Eff = 1, and for neither, Eff = 0. 
-Gd: Director's movie won a Golden Globe for Directing in the same award season(indicator).
-DGA: Director's Guild of America win (indicator).
-Year: The Year that the movie was nominated for an Oscar.
+* Nom: The total number of Oscar nominations that the director's movie received.
+* Pic: Director's movie was also nominated for best picture (indicator).
+* Scr: Director's movie was also nominated for best screenplay. We are unsure why there would be any reason why Scr is equal to 2, as the same movie cannot be nominated twice for best screenplay. We believe that is an issue in the data, though miniscule.
+* Cin: Director's movie was also nominated for best cinematography (indicator).
+* Edi: Director's movie was also nominated for best editing (indicator).
+* Eff: A variable that specifies if the director's movie was nominated for sound editing, visual effects, or both. For both, Eff = 2, for one and not the other, * Eff = 1, and for neither, Eff = 0. 
+* Gd: Director's movie won a Golden Globe for Directing in the same award season (indicator).
+* DGA: Director's Guild of America win (indicator).
+* Year: The year that the movie was nominated for an Oscar.
     
 
 ## Exploratory Data Analysis
 
 ```{r, echo = FALSE}
 ggplot(data = director_noms, aes(x = Nom, fill = as.character(win))) + geom_histogram(binwidth = 1) + 
-  labs(title = "Total Oscar Nominations", x = "Total Nominations")  + 
+  labs(title = "Plot 1: Total Oscar Nominations", x = "Total Nominations")  + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 ```
 The above analysis makes it appear that the more nominations a movie has, the more likely the director is to win an Oscar. This is enough correlation to warrant adding it to our initial model. 
@@ -116,18 +116,19 @@ r <- ggplot(director_noms, aes(fill = as.character(win), x = Year)) +
   labs(x = "Year of Oscars", y = "count") + 
   scale_fill_manual(name = "Won", values = c("blue", "red"))
 
-(e + f)/ (g + k) /(m + p) / (q + r)
+patch <- (e + f)/ (g + k) /(m + p) / (q + r)
+patch + plot_annotation(title = "Plot 2: Various other EDA")
 ```
 All of the above variables appear to show some correlation in a difference between an increase in them and an increase in the proportion of wins (except for year, which has a greater proportion of wins in the first decade). 
 
-The proportion of Best Director winners given a best picture nomination is much higher than without a best picture nomination, and similarly, the proportion of Best Director winners also increases as Screenplay, Cinematography, Editing, Golden Globe winner, and Director’s Guild of America winner goes from 0 to 1. Even Special Effects appears to have a larger proportion of Best Director winners given 1 or 2 special effects nominations. Lastly, year clearly has a higher proportion of wins in the first decade of the Oscars. 
+The proportion of Best Director winners given a best picture nomination is much higher than without a best picture nomination, and similarly, the proportion of Best Director winners also increases as Screenplay, Cinematography, Editing, Golden Globe winner, and Director’s Guild of America winner go from 0 to 1. Even Special Effects appears to have a larger proportion of Best Director winners given 1 or 2 special effects nominations. Lastly, year clearly has a higher proportion of wins in the first decade of the Oscars. 
 
 We have chosen all of these variables as our possible predictors: DGA, Year, Gd, Edi, Scr, Cin, Pic, Nom, and Eff.
   
 
 # Model and parameters
 
-We set a relatively weakly informative prior model of Normal (0, 10) for model coefficients. We do this because we have rather little practical prior information on the effects of each regressor. We also wanted to leave open the possibility that a coefficient could have a negative effect on the Oscar chances. In addition, Pardoe found that using more informative priors based on results from each previous year produced equivalent, but not better results. (Pardoe)
+We set a relatively weakly informative prior model of Normal (0, 10) for model coefficients. We do this because we have rather little practical prior information on the effects of each regressor. We also wanted to leave open the possibility that a coefficient could have a negative effect on Oscar chances. In addition, Pardoe found that using more informative priors based on results from each previous year produced equivalent, but not better results. (Pardoe)
 
 We assumed independent priors for the purpose of this problem because while we do not know much about the Academy itself, we assumed that no film companies bribed members to vote for a certain movie in all categories. The intercept prior was set to Normal(0,1) because it led to lower values of looic.
 
@@ -151,8 +152,10 @@ post2 <- stan_glm(win ~ Pic + Scr + Edi + Cin +
 ```
 
 ```{r}
-knitr::kable(round(posterior_interval(post2, prob = 0.95), 3), digits = 2)
+knitr::kable(round(posterior_interval(post2, prob = 0.95), 3), digits = 2,
+             caption = "Final Model")
 ```
+
 
 This can be compared to a model with total nominations and whether the candidate won Golden Globe for Best Director.
 
@@ -167,7 +170,8 @@ post1 <- stan_glm(win ~ Nom + Pic + Scr + Cin + Edi + Eff +
 
 
 ```{r, cache = T}
-knitr::kable(round(posterior_interval(post1, prob = 0.95), 3), digits = 2)
+knitr::kable(round(posterior_interval(post1, prob = 0.95), 3), digits = 2,
+             caption = "Compared Model with More Variables")
 ```
 
 # Results
@@ -196,7 +200,8 @@ Loo2 (LOOCV for our final model) is much lower than the intercept-only model. An
 rstanarm::compare_models(loo2, loo1)
 ```
 
-We computed posterior predictive probabilities of the linear predictor via the posterior_linpred() function provided in the rstanarm package. We calculate these posterior predictive probabilities in order to determine the classification accuracy of our model. This method gives us 91% accuracy.
+We computed posterior predictive probabilities of the linear predictor via the posterior_linpred() function provided in the `rstanarm` package. We calculate these posterior predictive probabilities in order to determine the classification accuracy of our model. This method gives us 91% accuracy.
+
 ```{r, results = FALSE}
 preds <- posterior_linpred(post2, transform=TRUE)
 pred <- colMeans(preds)
@@ -205,6 +210,11 @@ pr <- as.integer(pred >= 0.5)
 round(mean(xor(pr,as.integer(director_noms$win==0))),3)
 ```
 
+
+***
+***
+***
+
 We could also evaluate the classification accuracy of our model on unseen data. This can be done via a LOOCV approach. The results are similar to above, with about a 91% accuracy rate.
 ```{r, results = FALSE}
 ploo=E_loo(preds, loo1$psis_object, type="mean", log_ratios = -log_lik(post1))$value
@@ -212,6 +222,8 @@ round(mean(xor(ploo>0.5,as.integer(director_noms$win==0))),3)
 ```
 
 ## Convergence diagnostics
+
+
 
 Appendix II shows some traceplots of the variables in the final model. The model clearly mixes rather well and appears stationary.
 
@@ -233,9 +245,12 @@ Increasing Year by 1 and holding all else equal results in a change of -0.044 in
 
 # Conclusion
 
-The above model is highly accurate at 91% in predicting Best Director winners at the Academy Awards. This comes close to Pardoe's 93% figure. However, this is not very informative from a prediction standpoint. First of all, data range from 1928 to 2006, which leaves out more than a decade of rapid social change, including the #MeToo campaign. It is likely that this model would have changed since 2006.
+Our final model made use of the predictors Pic (best picture nomination), Scr (best screenplay nomination), Edi (best editing nomination), Cin (best cinematography nomination), DGA (winner of Director's Guild of America), and year (which was a nominee due to a lower amount of nominees in the first 4 years of the Oscars). One of the things that stood out was that having the best fit model (as defined by the lowest looic) did not mean having only variables that had a p-value less than 0.05, which is often a traditional mark of a good model with significant predictors.
 
-The winner of the Golden Globe Best Director and the Director's Guild winner were highly multicollinear, which is why we only included Director's Guild data in our model. Even so, the winner of both of these awards is not quite the bellwether that some have thought it to be. (Reid) Other characteristics of the director's movie are also very strong predictors of winning the award.
+Something else that we discovered was that the winner of the Golden Globe Best Director and the Director's Guild winner were highly multicollinear. Replacing DGA with Gd as a predictor in our model did not worsen the model greatly and allowed Gd to become significant (whereas it did not appear to be significant if DGA was also in the model). This is why we only included the Director's Guild winner variable in our final model. This variable was a very strong predictor of Oscar success, as the odds of a DGA winner taking the Oscar was 200 times that of a non-winner. Even so, being the winner of both the DGA and the Golden Globe is not quite the bellwether that some have thought it to be, with less than 50% of Oscar-winning directors also winning a Golden Globe in the same year (Reid). Other characteristics of the director's movie are also very strong predictors of winning the award.
+
+In addition, our model turned out to be highly accurate at predicting the winner of Best Director (within the data given), with a 91% success rate. This comes close to Iain Pardoe's 93% figure, and is only slightly less accurate. However, it is difficult to tell if this model would be very informative from a prediction standpoint. Data that informed this model range from 1928 to 2006, which leaves out more than a decade of rapid social and cultural changes that affect even the biggest stage in Hollywood. It is likely that this model would have changed since 2006, perhaps to accomodate values of equality and fairness that Hollywood has been forced to reckon with in recent years.
+
 
 # References
 
@@ -243,6 +258,8 @@ Pardoe, Ian. “Applying discrete choice models to predict Academy Award winners
 https://iainpardoe.com/refereed/08jrssa/oscars.pdf.
 
 Reid, Joe. “How Likely Are Golden Globe Winners to Win Oscars Anyway?”. Vulture. 3 Mar. 2021. https://www.vulture.com/2021/03/how-likely-are-golden-globe-winners-to-win-oscars-anyway.html .
+
+Reproducible code: https://github.com/glenmorgenstern/morgenstern-gerber-oscars-bayesian
 
 # Appendix
 
