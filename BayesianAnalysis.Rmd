@@ -2,9 +2,7 @@
 title: "Predicting the Best Director at the Oscars with Bayesian Logistic Regression"
 author: "Glen Morgenstern and Jason Gerber"
 date: "4/24/2021"
-output: 
-  pdf_document:
-    latex_engine: xelatex
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -56,11 +54,11 @@ director_noms <- oscars %>%
     
     Pic: An indicator variable that specifies if the director's movie was also nominated for best picture.
     
-    Aml and Afl: Indicator variables that specify if the lead actor or actress in the director's movie was nominated for best lead actor or actress, respectively.
+    Aml and Afl: Variables that indicate how many lead actors or actresses in the director's movie were nominated for best lead actor or actress, respectively.
     
-    Ams and Afs: Indicator variables that specify if the supporting actor or actress in the director's movie was nominated for best supporting actor or actress, respectively.
+    Ams and Afs: Variables that indicate how many lead actors or actresses in the director's movie were nominated for best supporting actor or actress, respectively.
     
-    Scr: An indicator variable that specifies if the director's movie was also nominated for best screenplay.
+    Scr: An indicator variable that specifies if the director's movie was also nominated for best screenplay.We are unsure why there would be any reason why Scr is equal to 2, as the same movie cannot be nominated twice for best screenplay. We believe that is an issue in the data, though miniscule. 
     
     Cin: An indicator variable that specifies if the director's movie was also nominated for best cinematography.
     
@@ -68,13 +66,13 @@ director_noms <- oscars %>%
     
     Cos: An indicator variable that specifies if the director's movie was also nominated for best costumes.
     
-    Sco: An indicator variable that specifies if the director's movie was also nominated for best muscial score.
+    Sco: An indicator variable that specifies if the director's movie was also nominated for best muscial score.We are unsure why there would be any reason why Sco is equal to 2, as the same movie cannot be nominated twice for best score. We believe that is an issue in the data, though miniscule. 
     
     Edi: An indicator variable that specifies if the director's movie was also nominated for best editing.
     
     Sou: An indicator variable that specifies if the director's movie was also nominated for best sound mixing.
     
-    Eff: An indicator variable that specifies if the director's movie was also nominated for best special effects.
+    Eff: An variable that specifies if the director's movie was nominated for sound editing, visual effects, or both. For both, Eff = 2, for one and not the other, Eff = 1, and for neither, Eff = 0. 
     
     PrN: The total number of oscar nominations that the director and actors for the movie had received previously.
     
@@ -85,6 +83,7 @@ director_noms <- oscars %>%
     DGA: An indicator variable that specifies if the director won an award from the Director's Guild of America earlier in the same award season.
     
     Year: The Year that the movie was nominated for an Oscar.
+    
 
 ## Exploratory Data Analysis
 
